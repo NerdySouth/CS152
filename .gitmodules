@@ -1,3 +1,6 @@
 [submodule "hate-speech-and-offensive-language"]
 	path = hate-speech-and-offensive-language
 	url = https://github.com/t-davidson/hate-speech-and-offensive-language.git
+[submodule "hate-speech-dataset"]
+	path = hate-speech-dataset
+	url = https://github.com/aitor-garcia-p/hate-speech-dataset.git

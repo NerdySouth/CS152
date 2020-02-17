@@ -11,26 +11,6 @@ from tqdm import tqdm
 import time
 from random import shuffle
 
-def read_data():
-	path = "Data/hate-speech-dataset-master/all_files"
-	comments_good = []
-	comments_bad = []
-	#reads in csv annotations to sort text
-	df = pd.read_csv("Data/hate-speech-dataset-master/annotations_metadata.csv")
-	good_fileID = df[df['label'] == 'noHate']['file_id'].to_list()
-	bad_fileID = df[df['label'] == 'hate']['file_id'].to_list()
-
-
-	for filename in os.listdir(path):
-		file = open(path + '/' + filename)
-		text = file.read()
-		if file in good_fileID:
-			comments_good.append(text)
-		else:
-			comments_bad.append(text)
-
-		file.close()
-
 def eval_text(text, retry=1):
 	# This is the URL which Perspective API requests go to.
 	PERSPECTIVE_URL = 'https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze'
@@ -58,13 +38,8 @@ def eval_text(text, retry=1):
 
 		time.sleep(retry)
 
-	# Print the entire response dictionary.
-	print("\"" + text + "\"")
-	print(json.dumps(response_dict, indent=4))
+	return response_dict["attributeScores"]["TOXICITY"]["summaryScore"]["value"]
 
-
-# Here you can add code to evaluate particular messages.
-#eval_text("As an example: am I toxic?")
 
 def find_anomalies(tweets, anomalous_above_threshold, threshold=0.5, max_num=5, gui=True):
 	anomalies = []
@@ -87,11 +62,38 @@ def find_anomalies(tweets, anomalous_above_threshold, threshold=0.5, max_num=5, 
 	return anomalies
 
 # https://github.com/t-davidson/hate-speech-and-offensive-language
-df = pd.read_csv("hate-speech-and-offensive-language/data/labeled_data.csv")
-clean = df[df['class'] == 2]['tweet'].to_list()
-dirty = df[df['class'] != 2]['tweet'].to_list()
-shuffle(clean)
-shuffle(dirty)
+# df = pd.read_csv("hate-speech-and-offensive-language/data/labeled_data.csv")
+# clean = df[df['class'] == 2]['tweet'].to_list()
+# dirty = df[df['class'] != 2]['tweet'].to_list()
+# shuffle(clean)
+# shuffle(dirty)
+# anomalies = find_anomalies(clean, True, threshold=0.7) + find_anomalies(dirty, False, threshold=0.3)
+# print(anomalies)
 
-anomalies = find_anomalies(clean, True, threshold=0.7) + find_anomalies(dirty, False, threshold=0.3)
-print(anomalies)
+# https://github.com/aitor-garcia-p/hate-speech-dataset
+def read_data():
+	path = "hate-speech-dataset/"
+	comments_good = []
+	comments_bad = []
+	#reads in csv annotations to sort text
+	df = pd.read_csv(path + "annotations_metadata.csv")
+	good_fileID = df[df['label'] == 'noHate']['file_id'].to_list()
+	bad_fileID = df[df['label'] == 'hate']['file_id'].to_list()
+
+	for filename in os.listdir(path + 'all_files/'):
+		file = open(path + 'all_files/' + filename)
+		text = file.read()
+		if os.path.splitext(filename)[0] in good_fileID:
+			comments_good.append(text)
+		else:
+			comments_bad.append(text)
+
+		file.close()
+
+	return comments_good, comments_bad
+
+clean2, dirty2 = read_data()
+shuffle(clean2)
+shuffle(dirty2)
+anomalies2 = find_anomalies(clean2, True, threshold=0.7) + find_anomalies(dirty2, False, threshold=0.3)
+print(anomalies2)
