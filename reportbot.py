@@ -29,9 +29,20 @@ REPORT_COMMAND = "report"
 CANCEL_COMMAND = "cancel"
 HELP_COMMAND = "help"
 
+#Broad Categories for Reporting
+HARASS_COMMAND = "harass"
+SUICIDE_COMMAND = "suicide"
+SPAM_COMMAND = "spam"
+NUDE_COMMAND = "nude"
+VIOLENCE_COMMAND = "violence"
+SCAM_COMMAND = "scam"
+OTHER_COMMAND = "other"
+
+
 # Possible report states - saved as strings for easier debugging.
 STATE_REPORT_START 		 = "report received" 	# 1
 STATE_MESSAGE_IDENTIFIED = "message identified" # 2
+STATE_CATEGORY_CHOSEN = "the user chose a category" #3
 
 
 # Currently managed reports. Keys are users, values are report state info.
@@ -106,6 +117,7 @@ def handle_report(message):
 		# in a progression. You're welcome to add branching options and    #
 		# the like. Get creative!                                          #
 		####################################################################
+
 		if report["state"] == STATE_REPORT_START:
 			# Fill in the report with reported message info.
 			result = populate_report(report, message)
@@ -120,7 +132,37 @@ def handle_report(message):
 			return response_identify_message(user)
 
 		elif report["state"] == STATE_MESSAGE_IDENTIFIED:
-			return response_what_next()
+			if HARASS_COMMAND in message["text"]:
+				#TODO: fill in sub categories!: "Hate Speech/Symbols, Bullying, None of these, but I'd like to tell you more..."
+				return response_what_next()
+			elif SUICIDE_COMMAND in message["text"]:
+				#TODO: fill in sub categories!: "Person who wrote the message is encouraging me/someone else to harm myself/themselves, 
+				# "Person who wrote the message is encouraging me/someone else to commit suicide, 
+				# "Person who wrote the message is at risk of suicide, 
+				# "Person who wrote the message is at risk of self-harm
+				# "None of these, but I'd like to tell you more..."
+				# (note: made modifications to include "me/someone else" b/c not just a direct message anymore like FB Messenger)
+				return report_suicide()
+			elif SPAM_COMMAND in message["text"]:
+				#TODO: no subcategories, lead directly to next stage....
+				return response_what_next()
+			elif NUDE_COMMAND in message["text"]:
+				#TODO: fill in sub categories!: "Child sexual exploitation/imagery/abuse, Sexual exploitation or solicitation, 
+				# "Nudity or pornography, None of these, but I'd like to tell you more..."
+				return response_what_next()
+			elif VIOLENCE_COMMAND in message["text"]:
+				#TODO: fill in sub categories!: "Dangerous Organizations, Specific threats of harm, Extreme graphic violence,
+				# "None of these, but I'd like to tell you more..."
+				return response_what_next()
+			elif SCAM_COMMAND in message["text"]:
+				#TODO: fill in sub categories!: "False information, Financial Scam, Impersonation (of me/someone I know), 
+				# "None of these, but I'd like to tell you more..."
+				return response_what_next()
+			else:
+				#TODO: the user wants to report something not in the broad categories...take them to stage to explain more
+				return response_what_next()
+			# What was originally under the "elif report["state"]" line"
+			# return response_what_next()
 
 
 def response_help():
@@ -148,10 +190,23 @@ def response_identify_message(user):
 	reply += " (" + report["author_name"] + ").\n\n"
 	replies.append(reply)
 
-	reply =  "_This is as far as the bot knows how to go - " \
-		  +  "it will be up to students to build the rest of this process._\n"
-	reply += "Use the `cancel` keyword to cancel this report."
+	#TODO: Flesh out these reporting categories?/Make them "clickable"/reactions?
+	reply = "_Why are you reporting this message?_\n"
+	reply += "Type `harass` if you want to report this message for _Harassment_.\n"
+	reply += "Type `suicide` if you want to report this message for _Suicide/Self-Harm_.\n"
+	reply += "Type `spam` if you want to report this message for _Spam_.\n"
+	reply += "Type `nude` if you want to report this message for _Nudity/Sexual Activity_.\n"
+	reply += "Type `violence` if you want to report this message for _Violence_.\n"
+	reply += "Type `scam` if you want to report this message for _Scam/Fraud_.\n"
+	reply += "Type `other` if you want to report this message but it does not fall under the above categories.\n"
+	reply += "Use the `cancel` command to cancel the report process.\n"
 	replies.append(reply)
+
+	#TODO: remove, Original contents of this function
+	# reply =  "_This is as far as the bot knows how to go - " \
+	# 	  +  "it will be up to students to build the rest of this process._\n"
+	# reply += "Use the `cancel` keyword to cancel this report."
+	# replies.append(reply)
 
 	return replies
 
@@ -159,6 +214,12 @@ def response_identify_message(user):
 def response_what_next():
 	reply =  "_This is as far as the bot knows how to go._\n"
 	reply += "Use the `cancel` keyword to cancel this report."
+	return [reply]
+
+def report_suicide():
+	reply =  "Thank you for reporting this message. We value your feedback.\n"
+	reply += "We are only a chat application and can't give you answers to your "\
+	      + "questions, but we do want you to help you find the support you need."
 	return [reply]
 
 
