@@ -132,6 +132,7 @@ def handle_report(message):
 			return response_identify_message(user)
 
 		elif report["state"] == STATE_MESSAGE_IDENTIFIED:
+
 			if HARASS_COMMAND in message["text"]:
 				#TODO: fill in sub categories!: "Hate Speech/Symbols, Bullying, None of these, but I'd like to tell you more..."
 				return response_what_next()
@@ -163,6 +164,46 @@ def handle_report(message):
 				return response_what_next()
 			# What was originally under the "elif report["state"]" line"
 			# return response_what_next()
+
+			# TODO: (if time) show a dialog instead? 
+			# See https://github.com/slackapi/python-dialog-example/blob/master/example.py
+			# open_dialog = api_slack_client.api_call(
+			# 	"dialog.open",
+			# 	#trigger_id=message["trigger_id"],
+			# 	dialog={
+			# 			"title": "Report a message",
+			# 			"submit_label": "Submit",
+			# 			"callback_id": user + "report_form",
+			# 			"elements": [
+			# 				{
+			# 					"label": "Why are you reporting this message?",
+			# 					"type": "select",
+			# 					"name": "reporting_categories",
+			# 					"placeholder": "Category",
+			# 					"options": [
+			# 						{
+			# 							"label": "Harassment",
+			# 							"value": "harassment"
+			# 						},
+			# 						{
+			# 							"label": "Suicide/Self-Harm",
+			# 							"value": "latte"
+			# 						},
+			# 						{
+			# 							"label": "Pour Over",
+			# 							"value": "pour_over"
+			# 						},
+			# 						{
+			# 							"label": "Cold Brew",
+			# 							"value": "cold_brew"
+			# 						}
+			# 					]
+			# 				}
+			# 			]
+			# 		}
+			# 	)
+
+			# print(open_dialog)
 
 
 def response_help():
@@ -219,7 +260,32 @@ def response_what_next():
 def report_suicide():
 	reply =  "Thank you for reporting this message. We value your feedback.\n"
 	reply += "We are only a chat application and can't give you answers to your "\
-	      + "questions, but we do want you to help you find the support you need."
+	      + "questions, but we do want you to help you find the support you need.\n\n"
+	reply += "*_Need to talk to someone?_*\n"
+	reply += "	_National Suicide Prevention Hotline: *1-800-273-8255*_\n"
+	reply += "	_National Suicide Prevention Online Chat:_ <https://suicidepreventionlifeline.org/chat/>\n"
+	reply += "	_Message a trust person from my contacts:_ <https://google.com>\n" #TODO: fill in!
+
+	reply += "*_Don't want to receive messages from this person anymore?_*\n"
+	reply += "	_Block this user_\n" #TODO: fill in the actual user's name
+	reply += "*_What can I do if the message is still bothering me?_*\n"
+	reply += "	_TODO: FILL IN_\n" #TODO: fill in! I'm not sure what option we want to give them
+	return [reply]
+
+def report_csam():
+	#TODO: edit for CSAM
+	reply =  "Thank you for reporting this message. We value your feedback.\n"
+	reply += "We are only a chat application and can't give you answers to your "\
+	      + "questions, but we do want you to help you find the support you need.\n\n"
+	reply += "*_Need to talk to someone?_*\n"
+	reply += "	_National Suicide Prevention Hotline: *1-800-273-8255*_\n"
+	reply += "	_National Suicide Prevention Online Chat:_ <https://suicidepreventionlifeline.org/chat/>\n"
+	reply += "	_Message a trust person from my contacts:_ <https://google.com>\n" #TODO: fill in!
+
+	reply += "*_Don't want to receive messages from this person anymore?_*\n"
+	reply += "	_Block this user_\n" #TODO: fill in the actual user's name
+	reply += "*_What can I do if the message is still bothering me?_*\n"
+	reply += "	_TODO: FILL IN_\n" #TODO: fill in! I'm not sure what option we want to give them
 	return [reply]
 
 
