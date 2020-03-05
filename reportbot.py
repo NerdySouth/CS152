@@ -143,7 +143,9 @@ def handle_report(message):
 				# "Person who wrote the message is at risk of self-harm
 				# "None of these, but I'd like to tell you more..."
 				# (note: made modifications to include "me/someone else" b/c not just a direct message anymore like FB Messenger)
-				return report_suicide()
+				return report_suicide(message)
+				#TODO: return suicide_end_msg()
+				
 			elif SPAM_COMMAND in message["text"]:
 				#TODO: no subcategories, lead directly to next stage....
 				return response_what_next()
@@ -161,7 +163,10 @@ def handle_report(message):
 				return response_what_next()
 			else:
 				#TODO: the user wants to report something not in the broad categories...take them to stage to explain more
-				return response_what_next()
+				if 'harmself' in message["text"]:
+					return suicide_end_msg()
+				else:
+					return response_what_next()
 			# What was originally under the "elif report["state"]" line"
 			# return response_what_next()
 
@@ -202,8 +207,8 @@ def handle_report(message):
 			# 			]
 			# 		}
 			# 	)
-
 			# print(open_dialog)
+			# report["state"] = STATE_CATEGORY_CHOSEN
 
 
 def response_help():
@@ -257,7 +262,20 @@ def response_what_next():
 	reply += "Use the `cancel` keyword to cancel this report."
 	return [reply]
 
-def report_suicide():
+def report_suicide(message):
+
+	user = message["user"]
+
+	reply = "If the user who wrote the message is..."
+	reply += "...encouraging you/someone else to harm yourself/themselves, type `harmself`.\n" 
+	reply += "...encouraging you/someone else to commit suicide, type `suicideself`.\n" 
+	reply += "...at risk of suicide, type `suicide`.\n" 
+	reply += "...at risk of self-harm, type `harm`.\n"
+	reply += "If it is none of these, but you would like to tell us more, type `next`.\n"
+
+	return [reply]
+	
+def suicide_end_msg():
 	reply =  "Thank you for reporting this message. We value your feedback.\n"
 	reply += "We are only a chat application and can't give you answers to your "\
 	      + "questions, but we do want you to help you find the support you need.\n\n"
