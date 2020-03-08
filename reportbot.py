@@ -134,81 +134,52 @@ def handle_report(message):
 		elif report["state"] == STATE_MESSAGE_IDENTIFIED:
 
 			if HARASS_COMMAND in message["text"]:
-				#TODO: fill in sub categories!: "Hate Speech/Symbols, Bullying, None of these, but I'd like to tell you more..."
-				return response_what_next()
+				return report_harass(message)
+	
 			elif SUICIDE_COMMAND in message["text"]:
-				#TODO: fill in sub categories!: "Person who wrote the message is encouraging me/someone else to harm myself/themselves, 
-				# "Person who wrote the message is encouraging me/someone else to commit suicide, 
-				# "Person who wrote the message is at risk of suicide, 
-				# "Person who wrote the message is at risk of self-harm
-				# "None of these, but I'd like to tell you more..."
 				# (note: made modifications to include "me/someone else" b/c not just a direct message anymore like FB Messenger)
 				return report_suicide(message)
-				#TODO: return suicide_end_msg()
 				
 			elif SPAM_COMMAND in message["text"]:
-				#TODO: no subcategories, lead directly to next stage....
 				return response_what_next()
+
 			elif NUDE_COMMAND in message["text"]:
-				#TODO: fill in sub categories!: "Child sexual exploitation/imagery/abuse, Sexual exploitation or solicitation, 
-				# "Nudity or pornography, None of these, but I'd like to tell you more..."
-				return response_what_next()
+				return report_nudity(message)
+
 			elif VIOLENCE_COMMAND in message["text"]:
-				#TODO: fill in sub categories!: "Dangerous Organizations, Specific threats of harm, Extreme graphic violence,
-				# "None of these, but I'd like to tell you more..."
-				return response_what_next()
+				return report_violence(message)
+
 			elif SCAM_COMMAND in message["text"]:
-				#TODO: fill in sub categories!: "False information, Financial Scam, Impersonation (of me/someone I know), 
-				# "None of these, but I'd like to tell you more..."
 				return response_what_next()
+
 			else:
 				#TODO: the user wants to report something not in the broad categories...take them to stage to explain more
-				if 'harmself' in message["text"]:
+
+				report["state"] = STATE_CATEGORY_CHOSEN
+
+				if 'selfsuic' in message["text"]:
 					return suicide_end_msg()
-				else:
-					return response_what_next()
+				elif 'selfharm' in message["text"]:
+					return suicide_end_msg()
+				elif 'risksuic' in message["text"]:
+					return suicide_end_msg()
+				elif 'riskharm' in message["text"]:
+					return suicide_end_msg()
+				elif 'next' in message["text"]:
+					return report_other()
+				elif 'child' in message["text"]:
+					return csam_end_msg()
+				else: #for harassment, spam, scam, violence 
+					return generic_end_msg()
+
+				return response_what_next()
+
+
 			# What was originally under the "elif report["state"]" line"
 			# return response_what_next()
 
 			# TODO: (if time) show a dialog instead? 
 			# See https://github.com/slackapi/python-dialog-example/blob/master/example.py
-			# open_dialog = api_slack_client.api_call(
-			# 	"dialog.open",
-			# 	#trigger_id=message["trigger_id"],
-			# 	dialog={
-			# 			"title": "Report a message",
-			# 			"submit_label": "Submit",
-			# 			"callback_id": user + "report_form",
-			# 			"elements": [
-			# 				{
-			# 					"label": "Why are you reporting this message?",
-			# 					"type": "select",
-			# 					"name": "reporting_categories",
-			# 					"placeholder": "Category",
-			# 					"options": [
-			# 						{
-			# 							"label": "Harassment",
-			# 							"value": "harassment"
-			# 						},
-			# 						{
-			# 							"label": "Suicide/Self-Harm",
-			# 							"value": "latte"
-			# 						},
-			# 						{
-			# 							"label": "Pour Over",
-			# 							"value": "pour_over"
-			# 						},
-			# 						{
-			# 							"label": "Cold Brew",
-			# 							"value": "cold_brew"
-			# 						}
-			# 					]
-			# 				}
-			# 			]
-			# 		}
-			# 	)
-			# print(open_dialog)
-			# report["state"] = STATE_CATEGORY_CHOSEN
 
 
 def response_help():
@@ -248,12 +219,6 @@ def response_identify_message(user):
 	reply += "Use the `cancel` command to cancel the report process.\n"
 	replies.append(reply)
 
-	#TODO: remove, Original contents of this function
-	# reply =  "_This is as far as the bot knows how to go - " \
-	# 	  +  "it will be up to students to build the rest of this process._\n"
-	# reply += "Use the `cancel` keyword to cancel this report."
-	# replies.append(reply)
-
 	return replies
 
 
@@ -262,19 +227,79 @@ def response_what_next():
 	reply += "Use the `cancel` keyword to cancel this report."
 	return [reply]
 
+def report_harass(message):
+	user = message["user"]
+
+	reply = "If the user who wrote the message is: \n"
+
+	reply += "	_using hate speech/symbols,_ type `hate`.\n" 
+	reply += "	_is bullying you/someone else_ type `bully`.\n\n" 
+	reply += "If it is none of these, but you would like to tell us more, type `next`.\n"
+
+	return [reply]
+
 def report_suicide(message):
 
 	user = message["user"]
 
-	reply = "If the user who wrote the message is..."
-	reply += "...encouraging you/someone else to harm yourself/themselves, type `harmself`.\n" 
-	reply += "...encouraging you/someone else to commit suicide, type `suicideself`.\n" 
-	reply += "...at risk of suicide, type `suicide`.\n" 
-	reply += "...at risk of self-harm, type `harm`.\n"
+	reply = "If the user who wrote the message is: \n"
+	reply += "	_encouraging you/someone else to harm yourself/themselves,_ type `selfharm`.\n" 
+	reply += "	_encouraging you/someone else to commit suicide,_ type `selfsuic`.\n" 
+	reply += "	_at risk of suicide,_ type `risksuic`.\n" 
+	reply += "  _at risk of self-harm,_ type `riskharm`.\n\n"
 	reply += "If it is none of these, but you would like to tell us more, type `next`.\n"
 
 	return [reply]
-	
+
+def report_nudity(message):
+
+	user = message["user"]
+
+	reply = "If the message/user who wrote the message is: \n"
+	reply += "	_engaging in/sharing child sexual exploitation/imagery/abuse,_ type `child`.\n" 
+	reply += "	_engaging in sexual exploitation or solicitation,_ type `exploit`.\n" 
+	reply += "	_shares images of nudity or pornography_ type `image`.\n\n"
+	reply += "If it is none of these, but you would like to tell us more, type `next`.\n"
+
+	return [reply]
+
+def report_violence(message):
+
+	user = message["user"]
+
+	reply = "If the message encourages/contains: \n"
+	reply += "	_dangerous organizations,_ type `org`.\n" 
+	reply += "	_specific threats of harm,_ type `threat`.\n" 
+	reply += "	_Extreme graphic violence_ type `graphic`.\n\n"
+	reply += "If it is none of these, but you would like to tell us more, type `next`.\n"
+
+	return [reply]
+
+def report_scam(message):
+
+	user = message["user"]
+
+	reply = "If the message contains/user is engaging in: \n"
+	reply += "	_false information,_ type `false`.\n" 
+	reply += "	_financial scam,_ type `finscam`.\n" 
+	reply += "	_impersonation (of me/someone I know)_ type `impers`.\n\n"
+	reply += "If it is none of these, but you would like to tell us more, type `next`.\n"
+
+	return [reply]
+
+def report_other(message):
+	#TODO: flesh out
+	reply = "Tell us more about this message/user.\n"
+	return [reply]
+
+def generic_end_msg():
+	reply =  "Thank you for reporting this message. We value your feedback.\n\n"
+	reply += "*_Don't want to receive messages from this person anymore?_*\n"
+	reply += "	_Block this user_\n" #TODO: fill in the actual user's name
+	reply += "*_What can I do if the message is still bothering me?_*\n"
+	reply += "	_TODO: FILL IN_\n" #TODO: fill in! I'm not sure what option we want to give them
+	return [reply]
+
 def suicide_end_msg():
 	reply =  "Thank you for reporting this message. We value your feedback.\n"
 	reply += "We are only a chat application and can't give you answers to your "\
@@ -290,14 +315,14 @@ def suicide_end_msg():
 	reply += "	_TODO: FILL IN_\n" #TODO: fill in! I'm not sure what option we want to give them
 	return [reply]
 
-def report_csam():
+def csam_end_msg():
 	#TODO: edit for CSAM
 	reply =  "Thank you for reporting this message. We value your feedback.\n"
-	reply += "We are only a chat application and can't give you answers to your "\
-	      + "questions, but we do want you to help you find the support you need.\n\n"
+	reply += "If you believe someone is in immediate danger, help us keep our"\
+	      + "community safe and reach out to your local emergencies services.\n\n"
 	reply += "*_Need to talk to someone?_*\n"
-	reply += "	_National Suicide Prevention Hotline: *1-800-273-8255*_\n"
-	reply += "	_National Suicide Prevention Online Chat:_ <https://suicidepreventionlifeline.org/chat/>\n"
+	reply += "	_National Center for Missing and Exploited Children (NCMEC): *1-800-THE-LOST (843-5678)*_\n"
+	reply += "	_NCMEC Cyber Tipline:_ <https://report.cybertip.org/>\n"
 	reply += "	_Message a trust person from my contacts:_ <https://google.com>\n" #TODO: fill in!
 
 	reply += "*_Don't want to receive messages from this person anymore?_*\n"
